@@ -1,0 +1,14 @@
+language: node_js
+node_js:
+  - "16"
+  - "17"
+  - "18"
+
+install:
+  - npm ci
+  - npx playwright install
+
+script:
+  - npm start
+  - npm run e2e
+  - npm test
