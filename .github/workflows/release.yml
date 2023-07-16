@@ -13,7 +13,7 @@ jobs:
 
       - name: Get the version
         id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -26,14 +26,13 @@ jobs:
       - name: Generate changelog
         id: generate_changelog
         run: |
-          github_changelog_generator -u ${{ github.repository_owner }} -p ${{ github.event.repository.name }} --token ${{ secrets.GITHUB_TOKEN }} --future-release ${{ steps.get_version.outputs.VERSION }}
-          echo ::set-output name=CHANGELOG::$(cat CHANGELOG.md)
+          github_changelog_generator -u ${{ github.repository_owner }} -p ${{ github.event.repository.name }} --token ${{ secrets.GITHUB_TOKEN }} --future-release ${{ env.VERSION }}
+          echo "CHANGELOG=$(cat CHANGELOG.md)" >> $GITHUB_ENV
       
       - name: Create Release Issue
         id: create_issue
-        uses: actions/github-script@v4
+        uses: actions/github-script@v5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issue = {
               owner: context.repo.owner,
@@ -44,7 +43,7 @@ jobs:
             };
             const result = await github.rest.issues.create(issue);
             return result.data.number;
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
@@ -66,12 +65,10 @@ jobs:
           publish_dir: ./public
 
       - name: Update Issue with test results and deploy info
-        uses: actions/github-script@v4
-        id: update_issue
+        uses: actions/github-script@v5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const issue_number = ${{ steps.create_issue.outputs.number }};
+            const issue_number = ${{ steps.create_issue.outputs.result }};
             const issue = await github.rest.issues.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -88,14 +85,13 @@ jobs:
             });
 
       - name: Close Issue
-        uses: actions/github-script@v4
+        uses: actions/github-script@v5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             await github.rest.issues.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: ${{ steps.create_issue.outputs.number }},
+              issue_number: ${{ steps.create_issue.outputs.result }},
               state: "closed"
             });
 
