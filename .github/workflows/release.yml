@@ -15,14 +15,19 @@ jobs:
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.6
+      
+      - name: Install github-changelog-generator
+        run: gem install github_changelog_generator
+      
       - name: Generate changelog
         id: generate_changelog
-        uses: github-changelog-generator/github-changelog-generator@master
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: v*
-          unreleased-only: true
-          future-release: ${{ steps.get_version.outputs.VERSION }}
+        run: |
+          github_changelog_generator -u ${{ github.repository_owner }} -p ${{ github.event.repository.name }} --token ${{ secrets.GITHUB_TOKEN }} --future-release ${{ steps.get_version.outputs.VERSION }}
+          echo ::set-output name=CHANGELOG::$(cat CHANGELOG.md)
       
       - name: Create Release Issue
         id: create_issue
@@ -93,5 +98,6 @@ jobs:
               issue_number: ${{ steps.create_issue.outputs.number }},
               state: "closed"
             });
+
 
 
