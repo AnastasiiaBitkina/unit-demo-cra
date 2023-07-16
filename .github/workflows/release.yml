@@ -25,17 +25,21 @@ jobs:
           future-release: ${{ steps.get_version.outputs.VERSION }}
       
       - name: Create Release Issue
-        uses: octokit/create-an-issue@v2
         id: create_issue
+        uses: actions/github-script@v4
         with:
-          title: "Release ${{ steps.get_version.outputs.VERSION }}"
-          body: |
-            Author: ${{ github.actor }}
-            Date: ${{ github.event.push.timestamp }}
-            Version: ${{ steps.get_version.outputs.VERSION }}
-            Changelog: ${{ steps.generate_changelog.outputs.changelog }}
-          labels: RELEASE
-
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Release ${process.env.VERSION}`,
+              body: `Author: ${context.actor}\nDate: ${new Date().toISOString()}\nVersion: ${process.env.VERSION}\nChangelog: ${process.env.CHANGELOG}`,
+              labels: ['RELEASE']
+            };
+            const result = await github.rest.issues.create(issue);
+            return result.data.number;
+      
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
@@ -89,4 +93,5 @@ jobs:
               issue_number: ${{ steps.create_issue.outputs.number }},
               state: "closed"
             });
+
 
