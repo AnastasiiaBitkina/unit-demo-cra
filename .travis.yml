@@ -4,11 +4,24 @@ node_js:
   - "17"
   - "18"
 
-install:
-  - npm ci
-  - npx playwright install
+# Указывает Travis CI на то, что нужно выполнять сборку и тестирование на каждый коммит и пулл реквест
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
 
-script:
-  - npm start
-  - npm run e2e
-  - npm test
+# Указывает Travis CI на список шагов для выполнения
+jobs:
+  include:
+    - name: Run tests
+      script:
+        - npm start
+        - npm run e2e
+        - npm test
+
+    - name: Run linter
+      script:
+        - commitlint --from=HEAD~1 --to=HEAD
