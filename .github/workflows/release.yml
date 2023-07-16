@@ -20,14 +20,20 @@ jobs:
         with:
           ruby-version: 3.0
       
-      - name: Install github-changelog-generator
-        run: gem install github_changelog_generator
-      
       - name: Generate changelog
-        id: generate_changelog
         run: |
           github_changelog_generator -u ${{ github.repository_owner }} -p ${{ github.event.repository.name }} --token ${{ secrets.GITHUB_TOKEN }} --future-release ${{ env.VERSION }}
-          echo "CHANGELOG=$(cat CHANGELOG.md)" >> $GITHUB_ENV
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          body_path: ./CHANGELOG.md
+
       
       - name: Create Release Issue
         id: create_issue
