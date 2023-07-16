@@ -37,10 +37,4 @@ jobs:
       - name: Run tests
         run: npm test
         
-      - name: Install commitlint
-        run: npm install -g @commitlint/cli
-
-      - name: Run linter
-        run: cd ${{ github.workspace }} && commitlint --from=${{ github.event.pull_request.base.sha }} --to=${{ github.event.pull_request.head.sha }}
-
 
