@@ -57,8 +57,20 @@
         ]
     },
     "devDependencies": {
+        "@commitlint/cli": "^17.6.6",
         "@playwright/test": "^1.28.0",
         "@types/react-helmet": "^6.1.5",
+        "husky": "^8.0.3",
         "jest-html-reporter": "^3.7.0"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
+    },
+    "lint-staged": {
+        "*.{js,jsx,ts,tsx}": [
+            "npx commitlint --edit $1"
+        ]
     }
 }
